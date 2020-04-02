@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.scoresys.dao.ScoresysStudentDao">
+    
+	<sql id="scoresysStudentColumns">
+		a.id AS "id",
+		a.stu_id AS "stuId",
+		a.stu_name AS "stuName",
+		a.stu_class AS "stuClass",
+		a.stu_major AS "stuMajor",
+		a.stu_score AS "stuScore",
+		a.group_id AS "groupId",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="scoresysStudentJoins">
+		LEFT JOIN scoresys_group b ON b.id = a.group_id
+	</sql>
+    
+	<select id="get" resultType="ScoresysStudent">
+		SELECT 
+			<include refid="scoresysStudentColumns"/>
+		FROM scoresys_student a
+		<include refid="scoresysStudentJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="ScoresysStudent">
+		SELECT 
+			<include refid="scoresysStudentColumns"/>
+		FROM scoresys_student a
+		<include refid="scoresysStudentJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="stuId != null and stuId != ''">
+				AND a.stu_id LIKE 
+					<if test="dbName == 'oracle'">'%'||#{stuId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{stuId}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{stuId},'%')</if>
+			</if>
+			<if test="stuName != null and stuName != ''">
+				AND a.stu_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{stuName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{stuName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{stuName},'%')</if>
+			</if>
+			<if test="groupId != null and groupId != ''">
+				AND a.group_id = #{groupId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="ScoresysStudent">
+		SELECT 
+			<include refid="scoresysStudentColumns"/>
+		FROM scoresys_student a
+		<include refid="scoresysStudentJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO scoresys_student(
+			id,
+			stu_id,
+			stu_name,
+			stu_class,
+			stu_major,
+			stu_score,
+			group_id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{stuId},
+			#{stuName},
+			#{stuClass},
+			#{stuMajor},
+			#{stuScore},
+			#{groupId},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE scoresys_student SET 	
+			stu_id = #{stuId},
+			stu_name = #{stuName},
+			stu_class = #{stuClass},
+			stu_major = #{stuMajor},
+			stu_score = #{stuScore},
+			group_id = #{groupId},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE scoresys_student SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE group_id = #{groupId}
+			</otherwise>
+		</choose>
+	</update>
+	
+</mapper>
